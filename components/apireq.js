@@ -1,8 +1,9 @@
 import React, { useState,Component } from 'react';
-//import Chart from './charts';
-import { Card } from 'react-bootstrap';
+import { Card,FormControl,Row, Alert,Container, FormGroup} from 'react-bootstrap';
+import {Input,Label} from 'reactstrap'; 
 import {Line ,defaults} from 'react-chartjs-2';
 defaults.global.defaultFontColor = 'white';
+
 
 
 
@@ -12,10 +13,9 @@ const api = {
 }
 
 
-
-
-
 function Stocks() {
+
+    
 
     
     const dateBuilder = (d) => {
@@ -29,6 +29,26 @@ function Stocks() {
         return `${year}-${month}-${date}`
     }
 
+    const [querys,setQuerys] = useState (dateBuilder(new Date()));
+    const [date,setDate] = useState (dateBuilder(new Date()));
+
+
+    const searches = evt => {
+        if (evt.key === "Enter") {
+            fetch(`${api.base}${querys}&apikey=${api.key}`)
+            .then(res => res.json())
+            .then(result => {
+            setQuerys(''); 
+            setDate(querys); 
+            console.log(querys);
+            });
+        }
+    }
+
+    
+
+
+
 
     class Chart extends Component {
     
@@ -38,10 +58,10 @@ function Stocks() {
             this.state = {
                 chartData: {
                     type: 'Line',
-                    labels: ["Open","Close"],
+                    labels: ["Open: 05:00","Close 20:00"],
                     datasets: [
                         {
-                            label: "Volume",
+                            label: "",
                             data: [
                                 (stocks["Time Series (Daily)"][dateBuilder(new Date())]["1. open"]),
                                 (stocks["Time Series (Daily)"][dateBuilder(new Date())]["4. close"]),
@@ -71,6 +91,7 @@ function Stocks() {
                 }
             }
         }
+
         
      
         render() { 
@@ -107,38 +128,66 @@ function Stocks() {
 
 
     return (
-        <div className="Weatherapp text-center ">
+        <div className="Stockapp text-center p-3">
+        
                 <main>
-                    <div className="search-box p-2 m-2">
-                        <input type="text" className="search-bar" placeholder="Search.."
+                    <Container>
+                <Row className="justify-content-center">
+                
+                    <div className="search-box p-2 m-2">    
+                    <div>Search for stock symbol</div>
+                    <small>Example TSLA, AAPL, DIS</small>
+                        <FormControl id="Searcher"  type="text" className="search-bar rounded p-2 m-2 shadow" placeholder="Search.."
                         onChange={e => setQuery(e.target.value)}
                         value={query}
                         onKeyPress={search}
-                        ></input>
+                        />
                       
-    
-                   
                     </div>
+                    
+                 </Row>
+                 </Container>
+                 
                     {(typeof (stocks["Meta Data"]) != "undefined") ? (
                 <div className="location-box">
                     <div>
-                    <div className="location text-primary"> {stocks["Meta Data"]["1. Information"]} </div>
-                 
+                  
                   
                 </div>
                 <div className="stock-box">
-    
-               
+                <Container>
+        
+                <Row className="justify-content-center">
+                <FormGroup>
+            
+        <Label for="exampleSelect">Date</Label>
+        <Input className="text-center p-2 m-2" type="text" name="select" id="exampleSelect" placeholder="YYYY-MM-DD" onChange={e => setQuerys(e.target.value)}
+                        value={querys}
+                        onKeyPress={searches}> 
+      
+      </Input>
+      
+      </FormGroup>  
+      </Row>
+                 </Container>
+
+                 
 
 
                     <Card className="text-center p-2 bg-dark">
-  <Card.Header><div id="name" className="stocka text-success">{(stocks["Meta Data"]["2. Symbol"])}</div>
-  <div className="date text-white">{dateBuilder(new Date())}</div>
+  <Card.Header><div id="name" className="stocka text-success" style={{fontSize: "20px"}}>{(stocks["Meta Data"]["2. Symbol"])}</div>
+  <Alert color="success">
+  <div className="date text-white"> {date} </div>    </Alert>
+  <Alert color="success">
+                    <div className="location text-primary"> {stocks["Meta Data"]["1. Information"]} </div>
+      </Alert>
   </Card.Header>
   <Card.Body>
     <Card.Title>    
-                    <div className="stocka text-white">Open {(stocks["Time Series (Daily)"][dateBuilder(new Date())]["1. open"])}</div>
-                    <div className="stocka text-white">Close {(stocks["Time Series (Daily)"][dateBuilder(new Date())]["4. close"])}</div>
+                    <div className="stocka text-white float-left">Open {(stocks["Time Series (Daily)"][date]["1. open"])}</div>
+                    <div className="stocka text-white float-right">Close {(stocks["Time Series (Daily)"][date]["4. close"])}</div>
+                    <div className="stocka text-success">High {(stocks["Time Series (Daily)"][dateBuilder(new Date())]["2. high"])}</div>
+                    <div className="stocka text-danger">Low {(stocks["Time Series (Daily)"][dateBuilder(new Date())]["3. low"])}</div>
                     </Card.Title>
     <Chart></Chart>
     
